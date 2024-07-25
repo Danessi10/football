@@ -6,7 +6,7 @@
     outline: 0;
     text-decoration: none;
     list-style: none;
-    overflow: hidden;
+    /* overflow: hidden; */
 }
 
 body {
@@ -24,6 +24,7 @@ body {
 }
 
 #ball {
+    z-index: 99;
     position: absolute;
     top: 50%;
     left: 50%;

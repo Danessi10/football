@@ -1,31 +1,66 @@
 const field = document.getElementById('field-wrapper');
-const fieldCoords = field.getBoundingClientRect();
 const ball = document.getElementById('ball');
 
+let shifts;
+
 ball.addEventListener('pointerdown', function (e) {
+    e.preventDefault();
     this.ondragstart = () => false;
     this.setPointerCapture(e.pointerId);
 
-    moveAt(e.clientX, e.clientY, this, fieldCoords);
+    let ballCoords = this.getBoundingClientRect();
+    this.style.transform = 'unset';
+
+    shifts = {
+        shiftX: e.clientX - ballCoords.left,
+        shiftY: e.clientY - ballCoords.top
+    };
+
+    moveAt.apply(this, [
+        e.clientX,
+        e.clientY,
+        field,
+        shifts
+    ]);
 
     this.addEventListener('pointermove', onMouseMove);
 
-    // this.onpointerup = function () {
-    //     this.removeEventListener('pointermove', onMouseMove);
-    //     this.onpointerup = null;
-    // }
+    this.onpointerup = function () {
+        this.removeEventListener('pointermove', onMouseMove);
+        this.onpointerup = null;
+    }
 });
 
-function moveAt(x, y, elem, parentCoords) {
-    let elemCoords = elem.getBoundingClientRect();
-    let shiftX = x - elemCoords.left;
-    let shiftY = y - elemCoords.top;
+function moveAt(x, y, parent, { shiftX, shiftY }) {
+    let left, top;
+    let parentCoords = parent.getBoundingClientRect();
+    let elemCoords = this.getBoundingClientRect();
 
-    elem.style.transform = 'unset';
-    elem.style.left = x - parentCoords.left - shiftX + 'px';
-    elem.style.top = y - parentCoords.top - shiftY + 'px';
+    if (x - shiftX < parentCoords.left) {
+        left = this.style.left = '0';
+    } else if (x + (this.offsetWidth - shiftX) > parentCoords.right) {
+        left = parent.offsetWidth - this.offsetWidth + 'px';
+    } else {
+        left = x - parentCoords.left - shiftX + 'px';
+    }
+
+    if (y - shiftY < parentCoords.top) {
+        top = this.style.top = 0;
+    } else if (y + (this.offsetHeight - shiftY) > parentCoords.bottom) {
+        top = parent.offsetHeight - this.offsetHeight + 'px';
+    } else {
+        top = y - parentCoords.top - shiftY + 'px';
+    }
+
+    this.style.left = left;
+    this.style.top = top;
 }
 
-function onMouseMove(event) {
-    moveAt(event.clientX, event.clientY, this, fieldCoords);
+function onMouseMove(e) {
+    moveAt.apply(this, [
+        e.clientX,
+        e.clientY,
+        field,
+        shifts
+    ]);
 }
